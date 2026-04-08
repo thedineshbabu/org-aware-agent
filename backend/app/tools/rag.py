@@ -132,7 +132,14 @@ async def rag_search(query: str, acl_roles: list[str], acl_user: str) -> dict[st
     top_k = settings.rag_top_k
     alpha = settings.rag_hybrid_alpha
 
-    rows = await _hybrid_search(query, acl_roles, acl_user, top_k, alpha)
+    try:
+        rows = await _hybrid_search(query, acl_roles, acl_user, top_k, alpha)
+    except Exception as exc:
+        return {
+            "citations": [],
+            "context": f"Document search is currently unavailable ({type(exc).__name__}). "
+                       "Please answer from general knowledge or let the user know you cannot access internal documents right now.",
+        }
 
     citations: list[Citation] = [
         Citation(

@@ -25,13 +25,11 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     claude_model: str = "claude-sonnet-4-5"
 
-    # Weaviate
-    weaviate_url: str = "http://weaviate:8080"
-    weaviate_api_key: str = ""
+    # pgvector / RAG
     embedding_provider: str = "openai"
     openai_api_key: str = ""
-    rag_hybrid_alpha: float = 0.75
     rag_top_k: int = 8
+    rag_hybrid_alpha: float = 0.75   # weight for semantic score (1-alpha = BM25/FTS weight)
 
     # Jira
     jira_base_url: str = ""

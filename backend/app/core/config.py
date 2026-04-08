@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     # Google Gemini
     google_api_key: str = ""
-    gemini_model: str = "gemini-1.5-pro"
+    gemini_model: str = "gemini-2.0-flash"
 
     # pgvector / RAG
     embedding_provider: str = "openai"

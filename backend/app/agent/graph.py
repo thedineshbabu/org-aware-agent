@@ -32,8 +32,14 @@ def _get_model(tools: list | None = None) -> BaseChatModel:
             model=settings.openai_model,
             api_key=settings.openai_llm_api_key,
         )
+    elif provider == "gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        model = ChatGoogleGenerativeAI(
+            model=settings.gemini_model,
+            google_api_key=settings.google_api_key,
+        )
     else:
-        raise ValueError(f"Unsupported LLM_PROVIDER: '{provider}'. Choose 'anthropic' or 'openai'.")
+        raise ValueError(f"Unsupported LLM_PROVIDER: '{provider}'. Choose 'anthropic', 'openai', or 'gemini'.")
 
     if tools:
         return model.bind_tools(tools)

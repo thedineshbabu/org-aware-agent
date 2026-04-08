@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     openai_llm_api_key: str = ""
     openai_model: str = "gpt-4o"
 
+    # Google Gemini
+    google_api_key: str = ""
+    gemini_model: str = "gemini-1.5-pro"
+
     # pgvector / RAG
     embedding_provider: str = "openai"
     openai_api_key: str = ""

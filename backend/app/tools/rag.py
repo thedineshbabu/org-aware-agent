@@ -45,70 +45,92 @@ async def _hybrid_search(
     top_k: int,
     alpha: float,
 ) -> list[dict[str, Any]]:
-    embedding = await _embed(query)
-    vec_literal = "[" + ",".join(str(x) for x in embedding) + "]"
-
-    # ACL filter: chunk must be accessible by the user's roles or explicit user id
     acl_filter = """
         (acl_roles && :roles::text[]
          OR :user_id = ANY(acl_users)
          OR array_length(acl_roles, 1) IS NULL)
     """
 
-    sql = text(f"""
-        WITH semantic AS (
+    # alpha=0 → pure full-text search, no embedding call needed
+    if alpha == 0.0:
+        sql = text(f"""
             SELECT
-                id,
-                1 - (embedding <=> :embedding::vector) AS sem_score
-            FROM document_chunks
-            WHERE {acl_filter}
-              AND embedding IS NOT NULL
-            ORDER BY embedding <=> :embedding::vector
-            LIMIT :pool
-        ),
-        fts AS (
-            SELECT
-                id,
-                ts_rank_cd(fts, query) AS fts_score
-            FROM document_chunks,
+                dc.id,
+                dc.doc_name,
+                dc.section,
+                dc.url,
+                dc.chunk_text,
+                dc.last_updated,
+                ts_rank_cd(fts, query) AS hybrid_score
+            FROM document_chunks dc,
                  plainto_tsquery('english', :query_text) query
             WHERE {acl_filter}
               AND fts @@ query
-            LIMIT :pool
-        ),
-        combined AS (
+            ORDER BY hybrid_score DESC
+            LIMIT :top_k
+        """)
+        params: dict[str, Any] = {
+            "query_text": query,
+            "roles": acl_roles or ["__none__"],
+            "user_id": acl_user,
+            "top_k": top_k,
+        }
+    else:
+        embedding = await _embed(query)
+        vec_literal = "[" + ",".join(str(x) for x in embedding) + "]"
+        sql = text(f"""
+            WITH semantic AS (
+                SELECT
+                    id,
+                    1 - (embedding <=> :embedding::vector) AS sem_score
+                FROM document_chunks
+                WHERE {acl_filter}
+                  AND embedding IS NOT NULL
+                ORDER BY embedding <=> :embedding::vector
+                LIMIT :pool
+            ),
+            fts AS (
+                SELECT
+                    id,
+                    ts_rank_cd(fts, query) AS fts_score
+                FROM document_chunks,
+                     plainto_tsquery('english', :query_text) query
+                WHERE {acl_filter}
+                  AND fts @@ query
+                LIMIT :pool
+            ),
+            combined AS (
+                SELECT
+                    coalesce(s.id, f.id) AS id,
+                    coalesce(s.sem_score, 0) AS sem_score,
+                    coalesce(f.fts_score, 0) AS fts_score,
+                    :alpha * coalesce(s.sem_score, 0) +
+                    (1 - :alpha) * coalesce(f.fts_score, 0) AS hybrid_score
+                FROM semantic s
+                FULL OUTER JOIN fts f ON s.id = f.id
+            )
             SELECT
-                coalesce(s.id, f.id) AS id,
-                coalesce(s.sem_score, 0) AS sem_score,
-                coalesce(f.fts_score, 0) AS fts_score,
-                :alpha * coalesce(s.sem_score, 0) +
-                (1 - :alpha) * coalesce(f.fts_score, 0) AS hybrid_score
-            FROM semantic s
-            FULL OUTER JOIN fts f ON s.id = f.id
-        )
-        SELECT
-            dc.id,
-            dc.doc_name,
-            dc.section,
-            dc.url,
-            dc.chunk_text,
-            dc.last_updated,
-            c.hybrid_score
-        FROM combined c
-        JOIN document_chunks dc ON dc.id = c.id
-        ORDER BY c.hybrid_score DESC
-        LIMIT :top_k
-    """)
-
-    params = {
-        "embedding": vec_literal,
-        "query_text": query,
-        "roles": acl_roles or ["__none__"],
-        "user_id": acl_user,
-        "alpha": alpha,
-        "pool": top_k * 5,   # over-fetch before fusion
-        "top_k": top_k,
-    }
+                dc.id,
+                dc.doc_name,
+                dc.section,
+                dc.url,
+                dc.chunk_text,
+                dc.last_updated,
+                c.hybrid_score
+            FROM combined c
+            JOIN document_chunks dc ON dc.id = c.id
+            ORDER BY c.hybrid_score DESC
+            LIMIT :top_k
+        """)
+        params = {
+            "embedding": vec_literal,
+            "query_text": query,
+            "roles": acl_roles or ["__none__"],
+            "user_id": acl_user,
+            "alpha": alpha,
+            "pool": top_k * 5,
+            "top_k": top_k,
+        }
 
     async with get_session_factory()() as session:
         result = await session.execute(sql, params)

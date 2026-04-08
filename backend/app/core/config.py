@@ -21,9 +21,16 @@ class Settings(BaseSettings):
     keycloak_client_secret: str = ""
     keycloak_audience: str = "org-agent-backend"
 
+    # LLM provider — "anthropic" or "openai"
+    llm_provider: str = "anthropic"
+
     # Anthropic
     anthropic_api_key: str = ""
     claude_model: str = "claude-sonnet-4-5"
+
+    # OpenAI (LLM — separate from embedding key below)
+    openai_llm_api_key: str = ""
+    openai_model: str = "gpt-4o"
 
     # pgvector / RAG
     embedding_provider: str = "openai"

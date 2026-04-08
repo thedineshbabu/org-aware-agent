@@ -348,12 +348,25 @@ Copy `.env.example` to `.env` and populate the values below.
 | `KEYCLOAK_CLIENT_SECRET` | — | Backend client secret |
 | `KEYCLOAK_AUDIENCE` | `org-agent-backend` | JWT audience claim |
 
-### Anthropic / Claude
+### LLM Provider
 
 | Variable | Default | Description |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | — | **Required.** Anthropic API key |
+| `LLM_PROVIDER` | `anthropic` | LLM backend: `anthropic` or `openai` |
+
+### Anthropic (when `LLM_PROVIDER=anthropic`)
+
+| Variable | Default | Description |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | — | Anthropic API key |
 | `CLAUDE_MODEL` | `claude-sonnet-4-5` | Claude model ID |
+
+### OpenAI (when `LLM_PROVIDER=openai`)
+
+| Variable | Default | Description |
+|---|---|---|
+| `OPENAI_LLM_API_KEY` | — | OpenAI API key for the LLM |
+| `OPENAI_MODEL` | `gpt-4o` | OpenAI model ID |
 
 ### RAG / Embeddings
 

@@ -5,7 +5,7 @@ Phase 2 adds: ToolNode with rag_search, conditional routing.
 Phase 3 adds: db_query, jira_search, jira_create tools.
 Phase 4 adds: RBAC tool filtering, iam_lookup tool.
 """
-from langchain_anthropic import ChatAnthropic
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage
 from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import ToolNode
@@ -15,13 +15,26 @@ from app.agent.state import AgentState
 from app.core.config import get_settings
 
 
-def _get_model(tools: list | None = None) -> ChatAnthropic:
+def _get_model(tools: list | None = None) -> BaseChatModel:
     settings = get_settings()
-    model = ChatAnthropic(
-        model=settings.claude_model,
-        api_key=settings.anthropic_api_key,
-        max_tokens=4096,
-    )
+    provider = settings.llm_provider.lower()
+
+    if provider == "anthropic":
+        from langchain_anthropic import ChatAnthropic
+        model = ChatAnthropic(
+            model=settings.claude_model,
+            api_key=settings.anthropic_api_key,
+            max_tokens=4096,
+        )
+    elif provider == "openai":
+        from langchain_openai import ChatOpenAI
+        model = ChatOpenAI(
+            model=settings.openai_model,
+            api_key=settings.openai_llm_api_key,
+        )
+    else:
+        raise ValueError(f"Unsupported LLM_PROVIDER: '{provider}'. Choose 'anthropic' or 'openai'.")
+
     if tools:
         return model.bind_tools(tools)
     return model

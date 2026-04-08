@@ -4,6 +4,7 @@ import { useAuth } from "react-oidc-context";
 import AuthGuard from "./components/AuthGuard";
 import Login from "./pages/Login";
 import Chat from "./pages/Chat";
+import Ingest from "./pages/Ingest";
 
 export default function App() {
   return (
@@ -11,6 +12,14 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route
+          path="/ingest"
+          element={
+            <AuthGuard>
+              <Ingest />
+            </AuthGuard>
+          }
+        />
         <Route
           path="/*"
           element={

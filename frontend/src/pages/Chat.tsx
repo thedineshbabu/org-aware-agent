@@ -1,4 +1,5 @@
 import { useAuth } from "react-oidc-context";
+import { Link } from "react-router-dom";
 import ChatWindow from "../components/ChatWindow";
 import MessageInput from "../components/MessageInput";
 import { useChat } from "../hooks/useChat";
@@ -21,6 +22,13 @@ export default function Chat() {
           <span className="text-sm text-gray-600" aria-label="Signed in as">
             {displayName}
           </span>
+          <Link
+            to="/ingest"
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            aria-label="Ingest documents"
+          >
+            Ingest Docs
+          </Link>
           <button
             onClick={() => auth.signoutRedirect()}
             className="text-sm text-gray-500 hover:text-gray-700 underline"

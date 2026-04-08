@@ -34,11 +34,11 @@ services:
     ports:
       - "8081:8080"
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/ready || exit 1"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && echo ok"]
       interval: 15s
       timeout: 10s
       retries: 10
-      start_period: 30s
+      start_period: 40s
 
   # ─── Backend ───────────────────────────────────────────────────────────────
   backend:

@@ -1,0 +1,104 @@
+{
+  "realm": "org-agent",
+  "enabled": true,
+  "displayName": "Org AI Agent",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "accessTokenLifespan": 300,
+  "ssoSessionMaxLifespan": 36000,
+  "roles": {
+    "realm": [
+      { "name": "employee", "description": "Standard employee — access to RAG and Jira" },
+      { "name": "developer", "description": "Engineering — adds DB query access" },
+      { "name": "manager", "description": "Team lead — adds DB query access" },
+      { "name": "it_admin", "description": "IT/Security — full access including IAM lookup" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "org-agent-frontend",
+      "name": "Org Agent Frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:3000/auth/callback"
+      ],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "org-agent-backend",
+      "name": "Org Agent Backend",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect",
+      "secret": "changeme-backend-secret"
+    }
+  ],
+  "users": [
+    {
+      "username": "alice",
+      "email": "alice@example.com",
+      "firstName": "Alice",
+      "lastName": "Smith",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "password", "temporary": false }],
+      "realmRoles": ["employee"],
+      "attributes": { "department": ["Engineering"] }
+    },
+    {
+      "username": "bob",
+      "email": "bob@example.com",
+      "firstName": "Bob",
+      "lastName": "Jones",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "password", "temporary": false }],
+      "realmRoles": ["developer"],
+      "attributes": { "department": ["Engineering"] }
+    },
+    {
+      "username": "carol",
+      "email": "carol@example.com",
+      "firstName": "Carol",
+      "lastName": "Admin",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "password", "temporary": false }],
+      "realmRoles": ["it_admin"],
+      "attributes": { "department": ["IT"] }
+    }
+  ],
+  "protocolMappers": [
+    {
+      "name": "department-mapper",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usermodel-attribute-mapper",
+      "config": {
+        "user.attribute": "department",
+        "claim.name": "department",
+        "jsonType.label": "String",
+        "id.token.claim": "true",
+        "access.token.claim": "true"
+      }
+    },
+    {
+      "name": "groups-mapper",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-group-membership-mapper",
+      "config": {
+        "claim.name": "groups",
+        "full.path": "false",
+        "id.token.claim": "true",
+        "access.token.claim": "true"
+      }
+    }
+  ]
+}

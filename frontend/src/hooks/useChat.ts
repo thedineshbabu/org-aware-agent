@@ -67,8 +67,10 @@ export function useChat() {
 
         setMessages((prev) => [...prev, assistantMessage]);
       } catch (err: unknown) {
+        const axiosBody = (err as { response?: { data?: { detail?: string; message?: string } } })?.response?.data;
         const message =
-          err instanceof Error ? err.message : "Something went wrong. Please try again.";
+          axiosBody?.detail ?? axiosBody?.message ??
+          (err instanceof Error ? err.message : "Something went wrong. Please try again.");
         setError(message);
         const errorMessage: ChatMessage = {
           id: crypto.randomUUID(),

@@ -21,7 +21,7 @@ except ImportError:
 @click.option("--doc-name", default=None, help="Override document display name")
 @click.option("--section", default="", help="Section label")
 def main(source_type: str, path: str | None, url: str | None, acl_roles: str, acl_users: str, doc_name: str | None, section: str):
-    """Ingest a document into the Weaviate vector store."""
+    """Ingest a document into the pgvector store."""
     if not path and not url:
         raise click.UsageError("Provide either --path or --url")
 
@@ -33,7 +33,7 @@ def main(source_type: str, path: str | None, url: str | None, acl_roles: str, ac
 
 async def _ingest(source_type, path, url, acl_roles, acl_users, doc_name, section):
     # Phase 2 implementation: import rag.ingestion and call ingest_document()
-    click.echo(f"[Phase 2] Ingestion not yet implemented — will call app.rag.ingestion.ingest_document()")
+    click.echo(f"[Phase 2] Ingestion not yet implemented — will embed chunks and upsert into document_chunks (pgvector)")
     click.echo(f"  source_type={source_type}, path={path}, url={url}")
     click.echo(f"  acl_roles={acl_roles}, acl_users={acl_users}")
 

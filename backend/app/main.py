@@ -59,10 +59,12 @@ def create_app() -> FastAPI:
     from app.api.health import router as health_router
     from app.api.chat import router as chat_router
     from app.api.sessions import router as sessions_router
+    from app.api.ingest import router as ingest_router
 
     app.include_router(health_router)
     app.include_router(chat_router, prefix="/api/v1")
     app.include_router(sessions_router, prefix="/api/v1")
+    app.include_router(ingest_router, prefix="/api/v1")
 
     return app
 

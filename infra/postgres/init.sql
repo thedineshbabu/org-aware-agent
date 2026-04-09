@@ -1,3 +1,6 @@
+-- Enable pgvector extension (required before Alembic migrations run)
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- Create a read-only role for the agent DB query tool (Phase 3)
 DO $$
 BEGIN
